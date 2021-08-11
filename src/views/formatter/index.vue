@@ -3,7 +3,7 @@
     <a-row class="container">
       <a-row>
         <Header
-          ref="header"
+          ref="headerRef"
           @full-screen="toggle"
           @empty="empty"
           @copy="copy"
@@ -27,144 +27,178 @@
   </div>
 </template>
 <script>
-import Footer from './components/footer'
-import Header from './components/header'
-import beautify from 'js-beautify'
-import json5 from 'json5'
-import { saveAs } from 'file-saver'
+import Footer from "./components/footer";
+import Header from "./components/header";
+import beautify from "js-beautify";
+import json5 from "json5";
+import { saveAs } from "file-saver";
 
 // import language js
-import 'codemirror/mode/javascript/javascript.js'
+import "codemirror/mode/javascript/javascript.js";
 
 // import theme style
-import 'codemirror/theme/neo.css'
-export default {
-  components: {
-    Footer,
-    Header
-  },
-  computed: {
-    fmtype () {
-      return this.$refs.header.fmtype
-    }
-  },
-  watch: {
-    code (code, oldCode) {
-      if (code !== oldCode) {
-        this.formatCode(code)
-      }
-    }
-  },
-  methods: {
-    save (content, name) {
-      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
-      saveAs(blob, name)
-    },
-    exportCode () {
-      if (this.fmtcode) {
-        const { fmtype, fileName } = this.$refs.header
-        const ext = fmtype === 'json' ? '.json' : '.js'
-        this.save(this.fmtcode, fileName + ext)
+import "codemirror/theme/neo.css";
+import {
+  computed,
+  defineComponent,
+  reactive,
+  watch,
+  ref,
+} from "@vue/composition-api";
+
+export default defineComponent({
+  setup(props, context) {
+    const r = context.root;
+    const fullscreen = ref(false);
+    const teleport = ref(true);
+    const code = ref("");
+    const fmtcode = ref("");
+    const headerRef = ref(null);
+    const cmOptions = reactive({
+      tabSize: 4,
+      mode: "text/javascript",
+      theme: "neo",
+      lineNumbers: true,
+      line: true,
+      viewportMargin: Infinity,
+    });
+    const fcmOptions = reactive({
+      tabSize: 4,
+      mode: "text/javascript",
+      theme: "neo",
+      lineNumbers: true,
+      line: true,
+      readOnly: true,
+      viewportMargin: Infinity,
+    });
+
+    const fmttype = computed(() => {
+      return headerRef.value.fmtype;
+    });
+
+    const data = {
+      fullscreen,
+      teleport,
+      code,
+      fmtcode,
+      cmOptions,
+      fcmOptions,
+    };
+
+    const refs = {
+      headerRef,
+    };
+
+    const save = (content, name) => {
+      const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+      saveAs(blob, name);
+    };
+    const exportCode = () => {
+      if (fmtcode.value) {
+        const { fmtype, fileName } = this.$refs.header;
+        const ext = fmtype === "json" ? ".json" : ".js";
+        save(this.fmtcode, fileName + ext);
       } else {
-        this.$message.warning('导出文件内容不能为空!')
+        r.$message.warning("导出文件内容不能为空!");
       }
-    },
-    importCode (code) {
-      this.code = code
-    },
-    copy () {
-      if (this.fmtcode) {
-        this.$copyText(this.fmtcode)
+    };
+    const importCode = (codes) => {
+      code.value = codes;
+    };
+    const copy = () => {
+      if (fmtcode.value) {
+        r.$copyText(fmtcode.value)
           .then((message) => {
-            console.log('copy', message)
-            this.$message.success('已复制到剪贴板!')
+            console.log("copy", message);
+            r.$message.success("已复制到剪贴板!");
           })
           .catch((err) => {
-            console.log('copy.err', err)
-            this.$message.error('复制失败!')
-          })
+            console.log("copy.err", err);
+            r.$message.error("复制失败!");
+          });
       } else {
-        this.$message.warning('复制的内容不能为空!')
+        r.$message.warning("复制的内容不能为空!");
       }
-    },
-    empty () {
-      this.code = ''
-      this.fmtcode = ''
-    },
-    toggle () {
-      this.$fullscreen.toggle(this.$el.querySelector('.fullscreen-wrapper'), {
-        teleport: this.teleport,
+    };
+    const empty = () => {
+      code.value = "";
+      fmtcode.value = "";
+    };
+    const toggle = () => {
+      r.$fullscreen.toggle(r.$el.querySelector(".fullscreen-wrapper"), {
+        teleport: teleport.value,
         callback: (isFullscreen) => {
-          this.fullscreen = isFullscreen
-        }
-      })
-    },
-    beautifyJs (code) {
+          fullscreen.value = isFullscreen;
+        },
+      });
+    };
+    const beautifyJs = (code) => {
       try {
-        return beautify.js(code)
+        return beautify.js(code);
       } catch (error) {
-        console.log(error)
+        console.log(error);
       }
-    },
-    jsonformat (code) {
+    };
+    const jsonformat = (code) => {
       try {
-        code = JSON.stringify(JSON.parse(code))
+        code = JSON.stringify(JSON.parse(code));
       } catch (error) {
-        code = error.toString()
+        code = error.toString();
       }
-      return code
-    },
-    json5format (code) {
+      return code;
+    };
+    const json5format = (code) => {
       try {
-        code = json5.stringify(json5.parse(code))
+        code = json5.stringify(json5.parse(code));
       } catch (error) {
-        code = error.toString()
+        code = error.toString();
       }
-      return code
-    },
-    formatCode (code) {
-      let fmtd = ''
+      return code;
+    };
+    const formatCode = (code) => {
+      let fmtd = "";
       if (code) {
-        if (this.fmtype === 'json') {
-          fmtd = this.jsonformat(code)
+        if (fmttype.value === "json") {
+          fmtd = jsonformat(code);
         } else {
-          fmtd = this.json5format(code)
+          fmtd = json5format(code);
         }
-        this.fmtcode = this.beautifyJs(fmtd)
+        fmtcode.value = beautifyJs(fmtd);
       } else {
-        this.fmtcode = ''
+        fmtcode.value = "";
       }
-    },
-    update () {
-      this.formatCode(this.code)
-    }
-  },
-  data () {
+    };
+    const update = () => {
+      formatCode(code.value);
+    };
+
+    const methods = {
+      save,
+      exportCode,
+      importCode,
+      copy,
+      empty,
+      toggle,
+      update,
+    };
+
+    watch(code, (code, oldCode) => {
+      if (code !== oldCode) {
+        formatCode(code);
+      }
+    });
+
     return {
-      fullscreen: false,
-      teleport: true,
-      code: '',
-      fmtcode: '',
-      cmOptions: {
-        tabSize: 4,
-        mode: 'text/javascript',
-        theme: 'neo',
-        lineNumbers: true,
-        line: true,
-        viewportMargin: Infinity
-      },
-      fcmOptions: {
-        tabSize: 4,
-        mode: 'text/javascript',
-        theme: 'neo',
-        lineNumbers: true,
-        line: true,
-        readOnly: true,
-        viewportMargin: Infinity
-      }
-    }
-  }
-}
+      ...refs,
+      ...data,
+      ...methods,
+    };
+  },
+  components: {
+    Footer,
+    Header,
+  },
+});
 </script>
 <style lang="less">
 .CodeMirror {
