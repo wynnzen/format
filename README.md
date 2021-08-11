@@ -1,4 +1,4 @@
-# tmpl
+# format
 
 ## Project setup
 ```
