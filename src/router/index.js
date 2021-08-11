@@ -9,10 +9,10 @@ const routes = [
     path: "/",
     name: "index",
     component: Index,
-    redirect:'format',
+    redirect:'f',
     children:[
       {
-        path:'format',
+        path:'f',
         name:'format',
         component:() => import('@/views/formatter')
       }
