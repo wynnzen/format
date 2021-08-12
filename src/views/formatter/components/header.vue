@@ -2,7 +2,7 @@
 import { computed, defineComponent, ref, watch } from "@vue/composition-api";
 
 export default defineComponent({
-  emits: ["full-screen", "empty", "copy", "import-code", "export-code"],
+  emits: ["full-screen", "empty", "copy", "import-code", "export-code","update-type"],
   setup(props, context) {
     const fmtype = ref("json5");
     const actived = ref(false);
@@ -91,24 +91,24 @@ export default defineComponent({
       exportCode,
     } = this;
 
-    const { ext, fmtype, actived, fileName, fileList } = this;
+    const { ext, actived, fileList } = this;
     return (
       <a-row class="header" type="flex" justify="space-between">
         <a-col>
           <a-space>
-            <a-radio-group default-value="json5" size="small" vModel={fmtype}>
+            <a-radio-group default-value="json5" size="small" vModel={this.fmtype}>
               <a-radio-button value="json5"> json5 </a-radio-button>
               <a-radio-button value="json"> json </a-radio-button>
             </a-radio-group>
             {!actived ? (
               <span class="file-name" onClick={inputActive}>
-                {fileName}
+                {this.fileName}
                 {ext}
               </span>
             ) : (
               <a-input
                 size="small"
-                vModel={fileName}
+                vModel={this.fileName}
                 onBlur={inputDeActive}
                 onPressEnter={inputDeActive}
               ></a-input>

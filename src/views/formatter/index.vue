@@ -1,31 +1,3 @@
-<template>
-  <div class="fullscreen-wrapper">
-    <a-row class="container">
-      <a-row>
-        <Header
-          ref="headerRef"
-          @full-screen="toggle"
-          @empty="empty"
-          @copy="copy"
-          @import-code="importCode"
-          @export-code="exportCode"
-          @update-type="update"
-        />
-      </a-row>
-      <a-row class="content">
-        <a-col :span="12" class="left-code-frame">
-          <codemirror class="CodeMirror" v-model="code" :options="cmOptions" />
-        </a-col>
-        <a-col :span="12">
-          <codemirror v-model="fmtcode" :options="fcmOptions" />
-        </a-col>
-      </a-row>
-      <a-row>
-        <Footer />
-      </a-row>
-    </a-row>
-  </div>
-</template>
 <script>
 import Footer from "./components/footer";
 import Header from "./components/header";
@@ -173,7 +145,6 @@ export default defineComponent({
     };
 
     const methods = {
-      save,
       exportCode,
       importCode,
       copy,
@@ -194,9 +165,42 @@ export default defineComponent({
       ...methods,
     };
   },
-  components: {
-    Footer,
-    Header,
+  render() {
+    const {  cmOptions, fcmOptions } = this;
+    const { exportCode, importCode, copy, empty, toggle, update } = this;
+
+    return (
+      <div class="fullscreen-wrapper">
+        <a-row class="container">
+          <a-row>
+            <Header
+              ref="headerRef"
+              onfull-screen={toggle}
+              onempty={empty}
+              oncopy={copy}
+              onimport-code={importCode}
+              onexport-code={exportCode}
+              onupdate-type={update}
+            />
+          </a-row>
+          <a-row class="content">
+            <a-col span="12" class="left-code-frame">
+              <codemirror
+                class="CodeMirror"
+                vModel={this.code}
+                options={cmOptions}
+              />
+            </a-col>
+            <a-col span="12">
+              <codemirror vModel={this.fmtcode} options={fcmOptions} />
+            </a-col>
+          </a-row>
+          <a-row>
+            <Footer />
+          </a-row>
+        </a-row>
+      </div>
+    );
   },
 });
 </script>
